@@ -9,38 +9,240 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated.tickets'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
+import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated.payments'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedTicketsNewRouteImport } from './routes/_authenticated.tickets.new'
+import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authenticated.tickets.$id'
+import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated.admin.tickets'
+import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated.admin.tenants'
+import { Route as AuthenticatedAdminRentRouteImport } from './routes/_authenticated.admin.rent'
+import { Route as AuthenticatedAdminTenantsIdRouteImport } from './routes/_authenticated.admin.tenants.$id'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTicketsRoute = AuthenticatedTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTicketsNewRoute = AuthenticatedTicketsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedTicketsRoute,
+} as any)
+const AuthenticatedTicketsIdRoute = AuthenticatedTicketsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedTicketsRoute,
+} as any)
+const AuthenticatedAdminTicketsRoute =
+  AuthenticatedAdminTicketsRouteImport.update({
+    id: '/admin/tickets',
+    path: '/admin/tickets',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminTenantsRoute =
+  AuthenticatedAdminTenantsRouteImport.update({
+    id: '/admin/tenants',
+    path: '/admin/tenants',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminRentRoute = AuthenticatedAdminRentRouteImport.update({
+  id: '/admin/rent',
+  path: '/admin/rent',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminTenantsIdRoute =
+  AuthenticatedAdminTenantsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminTenantsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/admin/rent': typeof AuthenticatedAdminRentRoute
+  '/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
+  '/tickets/$id': typeof AuthenticatedTicketsIdRoute
+  '/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/admin/rent': typeof AuthenticatedAdminRentRoute
+  '/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
+  '/tickets/$id': typeof AuthenticatedTicketsIdRoute
+  '/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
+  '/_authenticated/admin/rent': typeof AuthenticatedAdminRentRoute
+  '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
+  '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
+  '/_authenticated/tickets/$id': typeof AuthenticatedTicketsIdRoute
+  '/_authenticated/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/_authenticated/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/dashboard'
+    | '/payments'
+    | '/profile'
+    | '/tickets'
+    | '/admin/rent'
+    | '/admin/tenants'
+    | '/admin/tickets'
+    | '/tickets/$id'
+    | '/tickets/new'
+    | '/admin/tenants/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/dashboard'
+    | '/payments'
+    | '/profile'
+    | '/tickets'
+    | '/admin/rent'
+    | '/admin/tenants'
+    | '/admin/tickets'
+    | '/tickets/$id'
+    | '/tickets/new'
+    | '/admin/tenants/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/payments'
+    | '/_authenticated/profile'
+    | '/_authenticated/tickets'
+    | '/_authenticated/admin/rent'
+    | '/_authenticated/admin/tenants'
+    | '/_authenticated/admin/tickets'
+    | '/_authenticated/tickets/$id'
+    | '/_authenticated/tickets/new'
+    | '/_authenticated/admin/tenants/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +250,137 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tickets': {
+      id: '/_authenticated/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof AuthenticatedTicketsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/payments': {
+      id: '/_authenticated/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/tickets/new': {
+      id: '/_authenticated/tickets/new'
+      path: '/new'
+      fullPath: '/tickets/new'
+      preLoaderRoute: typeof AuthenticatedTicketsNewRouteImport
+      parentRoute: typeof AuthenticatedTicketsRoute
+    }
+    '/_authenticated/tickets/$id': {
+      id: '/_authenticated/tickets/$id'
+      path: '/$id'
+      fullPath: '/tickets/$id'
+      preLoaderRoute: typeof AuthenticatedTicketsIdRouteImport
+      parentRoute: typeof AuthenticatedTicketsRoute
+    }
+    '/_authenticated/admin/tickets': {
+      id: '/_authenticated/admin/tickets'
+      path: '/admin/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/tenants': {
+      id: '/_authenticated/admin/tenants'
+      path: '/admin/tenants'
+      fullPath: '/admin/tenants'
+      preLoaderRoute: typeof AuthenticatedAdminTenantsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/rent': {
+      id: '/_authenticated/admin/rent'
+      path: '/admin/rent'
+      fullPath: '/admin/rent'
+      preLoaderRoute: typeof AuthenticatedAdminRentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/tenants/$id': {
+      id: '/_authenticated/admin/tenants/$id'
+      path: '/$id'
+      fullPath: '/admin/tenants/$id'
+      preLoaderRoute: typeof AuthenticatedAdminTenantsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminTenantsRoute
+    }
   }
 }
 
+interface AuthenticatedTicketsRouteChildren {
+  AuthenticatedTicketsIdRoute: typeof AuthenticatedTicketsIdRoute
+  AuthenticatedTicketsNewRoute: typeof AuthenticatedTicketsNewRoute
+}
+
+const AuthenticatedTicketsRouteChildren: AuthenticatedTicketsRouteChildren = {
+  AuthenticatedTicketsIdRoute: AuthenticatedTicketsIdRoute,
+  AuthenticatedTicketsNewRoute: AuthenticatedTicketsNewRoute,
+}
+
+const AuthenticatedTicketsRouteWithChildren =
+  AuthenticatedTicketsRoute._addFileChildren(AuthenticatedTicketsRouteChildren)
+
+interface AuthenticatedAdminTenantsRouteChildren {
+  AuthenticatedAdminTenantsIdRoute: typeof AuthenticatedAdminTenantsIdRoute
+}
+
+const AuthenticatedAdminTenantsRouteChildren: AuthenticatedAdminTenantsRouteChildren =
+  {
+    AuthenticatedAdminTenantsIdRoute: AuthenticatedAdminTenantsIdRoute,
+  }
+
+const AuthenticatedAdminTenantsRouteWithChildren =
+  AuthenticatedAdminTenantsRoute._addFileChildren(
+    AuthenticatedAdminTenantsRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
+  AuthenticatedAdminRentRoute: typeof AuthenticatedAdminRentRoute
+  AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRouteWithChildren
+  AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
+  AuthenticatedAdminRentRoute: AuthenticatedAdminRentRoute,
+  AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRouteWithChildren,
+  AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
