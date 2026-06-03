@@ -1,4 +1,4 @@
-import { createFileRoute, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useParams, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDate, formatMonth } from "@/lib/format";
 import { RentStatusBadge, TicketStatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Trash2, Upload, Download, FileText } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
   component: AdminTenantDetailPage,
@@ -20,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
 function AdminTenantDetailPage() {
   const { id } = useParams({ from: "/_authenticated/admin/tenants/$id" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: tenant } = useQuery({
     queryKey: ["tenant", id],
@@ -45,6 +53,14 @@ function AdminTenantDetailPage() {
     },
   });
 
+  const { data: documents } = useQuery({
+    queryKey: ["tenant-documents", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("documents").select("*").eq("tenant_id", id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const [form, setForm] = useState<any>({});
   useEffect(() => { if (tenant) setForm(tenant); }, [tenant]);
 
@@ -53,6 +69,7 @@ function AdminTenantDetailPage() {
       full_name: form.full_name, email: form.email, phone: form.phone, address: form.address,
       apartment_number: form.apartment_number, monthly_rent: Number(form.monthly_rent) || 0,
       notes: form.notes, active: form.active,
+      flagged: !!form.flagged, flag_note: form.flag_note || null,
     }).eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Sparat"); qc.invalidateQueries({ queryKey: ["tenant", id] }); }
   }
@@ -76,6 +93,41 @@ function AdminTenantDetailPage() {
     if (error) toast.error(error.message); else { toast.success("Markerad som betald"); qc.invalidateQueries({ queryKey: ["tenant-rents", id] }); }
   }
 
+  async function deleteTenant() {
+    const { error } = await supabase.from("tenants").delete().eq("id", id);
+    if (error) { toast.error("Kunde inte ta bort", { description: error.message }); return; }
+    toast.success("Hyresgäst borttagen");
+    navigate({ to: "/admin/tenants" });
+  }
+
+  async function uploadDocument(file: File, description: string) {
+    const path = `${id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+    if (upErr) { toast.error("Uppladdning misslyckades", { description: upErr.message }); return; }
+    const { error: insErr } = await supabase.from("documents").insert({
+      tenant_id: id, file_path: path, file_name: file.name,
+      mime_type: file.type || null, size_bytes: file.size,
+      description: description || null, uploaded_by: user!.id,
+    });
+    if (insErr) { toast.error("Kunde inte spara dokument", { description: insErr.message }); return; }
+    toast.success("Dokument uppladdat");
+    qc.invalidateQueries({ queryKey: ["tenant-documents", id] });
+  }
+
+  async function downloadDocument(path: string, name: string) {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) { toast.error("Kunde inte hämta länk"); return; }
+    const a = document.createElement("a");
+    a.href = data.signedUrl; a.download = name; a.target = "_blank"; a.click();
+  }
+
+  async function deleteDocument(docId: string, path: string) {
+    await supabase.storage.from("documents").remove([path]);
+    const { error } = await supabase.from("documents").delete().eq("id", docId);
+    if (error) toast.error(error.message);
+    else { toast.success("Dokument borttaget"); qc.invalidateQueries({ queryKey: ["tenant-documents", id] }); }
+  }
+
   if (!tenant) return <p className="text-muted-foreground">Läser in…</p>;
 
   return (
@@ -83,7 +135,17 @@ function AdminTenantDetailPage() {
       <Link to="/admin/tenants" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4 mr-1" /> Tillbaka
       </Link>
-      <h1 className="text-3xl font-semibold">{tenant.full_name}</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-3xl font-semibold">{tenant.full_name}</h1>
+        {tenant.flagged && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-destructive/10 text-destructive text-xs font-medium">
+            <AlertTriangle className="h-3.5 w-3.5" /> Markerad
+          </span>
+        )}
+        <div className="ml-auto">
+          <Link to="/messages/$tenantId" params={{ tenantId: id }} className="text-sm text-accent hover:underline">Öppna meddelanden →</Link>
+        </div>
+      </div>
 
       <Card>
         <CardHeader><CardTitle>Profil</CardTitle></CardHeader>
@@ -102,7 +164,43 @@ function AdminTenantDetailPage() {
             </div>
           </div>
           <div className="space-y-1"><Label>Anteckningar</Label><Textarea rows={3} value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-          <Button onClick={save}>Spara ändringar</Button>
+
+          <div className="rounded-md border border-border p-3 space-y-2 bg-muted/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <Label htmlFor="flag" className="font-medium">Markera (misskötsel / OBS)</Label>
+              </div>
+              <Switch id="flag" checked={!!form.flagged} onCheckedChange={(v) => setForm({ ...form, flagged: v })} />
+            </div>
+            <Textarea
+              rows={2}
+              placeholder="Kort anteckning, t.ex. anledning till markeringen…"
+              value={form.flag_note ?? ""}
+              onChange={(e) => setForm({ ...form, flag_note: e.target.value })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <Button onClick={save}>Spara ändringar</Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-1" /> Ta bort hyresgäst</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Ta bort {tenant.full_name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Allt kopplat till hyresgästen tas bort permanent: hyror, ärenden, meddelanden och dokument. Konto-inloggningen kvarstår men är inte längre kopplad.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteTenant} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Ta bort</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardContent>
       </Card>
 
@@ -148,6 +246,73 @@ function AdminTenantDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Dokument</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <DocumentUpload onUpload={uploadDocument} />
+          {!documents?.length ? (
+            <p className="text-sm text-muted-foreground">Inga dokument uppladdade.</p>
+          ) : (
+            <div className="space-y-2">
+              {documents.map((d: any) => (
+                <div key={d.id} className="flex items-center justify-between gap-3 p-2 rounded border border-border">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm truncate">{d.file_name}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {formatDate(d.created_at)}{d.description ? ` · ${d.description}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button size="sm" variant="ghost" onClick={() => downloadDocument(d.file_path, d.file_name)}>
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => deleteDocument(d.id, d.file_path)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+function DocumentUpload({ onUpload }: { onUpload: (file: File, description: string) => Promise<void> }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return;
+    setBusy(true);
+    await onUpload(file, description);
+    setBusy(false);
+    setFile(null);
+    setDescription("");
+    (document.getElementById("doc-file") as HTMLInputElement | null)?.value && ((document.getElementById("doc-file") as HTMLInputElement).value = "");
+  }
+
+  return (
+    <form onSubmit={submit} className="grid md:grid-cols-[1fr,1fr,auto] gap-2 items-end">
+      <div className="space-y-1">
+        <Label htmlFor="doc-file" className="text-xs">Fil</Label>
+        <Input id="doc-file" type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="doc-desc" className="text-xs">Beskrivning (valfritt)</Label>
+        <Input id="doc-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="t.ex. Hyreskontrakt 2026" />
+      </div>
+      <Button type="submit" disabled={!file || busy}>
+        <Upload className="h-4 w-4 mr-1" /> {busy ? "Laddar…" : "Ladda upp"}
+      </Button>
+    </form>
   );
 }
