@@ -103,7 +103,7 @@ function LoginPage() {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>{loading ? "Skapar…" : "Skapa konto"}</Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Det första kontot blir automatiskt hyresvärd. Övriga konton blir hyresgäster och kopplas till din profil när hyresvärden lagt in dig.
+                  Endast e-postadresser som hyresvärden lagt upp kan registreras. Det första kontot i systemet blir hyresvärd.
                 </p>
               </form>
             </TabsContent>
