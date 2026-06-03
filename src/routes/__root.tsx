@@ -82,10 +82,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Hyresportalen" },
       { name: "description", content: "Säker portal för hyresgäster och hyresvärd: betalningar, ärenden och meddelanden." },
       { property: "og:title", content: "Hyresportalen" },
-      { property: "og:description", content: "Säker portal för hyresgäster och hyresvärd." },
+      { property: "og:description", content: "Säker portal för hyresgäster och hyresvärd: betalningar, ärenden och meddelanden." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Hyresportalen" },
+      { name: "twitter:description", content: "Säker portal för hyresgäster och hyresvärd: betalningar, ärenden och meddelanden." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/af41a7b2-c88f-4bf2-864c-cd7c7f01da26/id-preview-be8a374e--1579c8c5-e899-415c-940a-1969dd989288.lovable.app-1780477830412.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/af41a7b2-c88f-4bf2-864c-cd7c7f01da26/id-preview-be8a374e--1579c8c5-e899-415c-940a-1969dd989288.lovable.app-1780477830412.png" },
     ],
     links: [
       {
