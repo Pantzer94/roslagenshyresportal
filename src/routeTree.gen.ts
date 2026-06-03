@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated.tickets'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated.payments'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated.messages'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedTicketsNewRouteImport } from './routes/_authenticated.tickets.new'
 import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authenticated.tickets.$id'
@@ -64,6 +65,11 @@ const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/dashboard'
+    | '/messages'
     | '/payments'
     | '/profile'
     | '/tickets'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/dashboard'
+    | '/messages'
     | '/payments'
     | '/profile'
     | '/tickets'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/_authenticated/dashboard'
+    | '/_authenticated/messages'
     | '/_authenticated/payments'
     | '/_authenticated/profile'
     | '/_authenticated/tickets'
@@ -269,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -352,6 +371,7 @@ const AuthenticatedAdminTenantsRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
@@ -362,6 +382,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
