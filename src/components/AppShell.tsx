@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Building2, LayoutDashboard, CreditCard, Wrench, User, Users, Banknote, LogOut, Menu, X } from "lucide-react";
+import { Building2, LayoutDashboard, CreditCard, Wrench, User, Users, Banknote, LogOut, Menu, X, MessageSquare, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem { to: string; label: string; icon: typeof LayoutDashboard }
@@ -11,6 +11,8 @@ const tenantNav: NavItem[] = [
   { to: "/dashboard", label: "Översikt", icon: LayoutDashboard },
   { to: "/payments", label: "Betalningar", icon: CreditCard },
   { to: "/tickets", label: "Ärenden", icon: Wrench },
+  { to: "/messages", label: "Meddelanden", icon: MessageSquare },
+  { to: "/documents", label: "Dokument", icon: FileText },
   { to: "/profile", label: "Min profil", icon: User },
 ];
 
@@ -19,6 +21,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/tenants", label: "Hyresgäster", icon: Users },
   { to: "/admin/rent", label: "Hyror", icon: Banknote },
   { to: "/admin/tickets", label: "Ärenden", icon: Wrench },
+  { to: "/messages", label: "Meddelanden", icon: MessageSquare },
   { to: "/profile", label: "Min profil", icon: User },
 ];
 

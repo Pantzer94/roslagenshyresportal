@@ -27,6 +27,8 @@ function ProfilePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -46,6 +48,16 @@ function ProfilePage() {
 
   if (isLoading) return <p className="text-muted-foreground">Läser in…</p>;
 
+  async function changeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newEmail.trim() || newEmail === user!.email) return;
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
+    setEmailSaving(false);
+    if (error) toast.error("Kunde inte byta e-post", { description: error.message });
+    else toast.success("Bekräftelse skickad", { description: "Klicka på länken i båda inkorgarna för att slutföra bytet." });
+  }
+
   return (
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-3xl font-semibold">Min profil</h1>
@@ -54,7 +66,7 @@ function ProfilePage() {
         <CardContent>
           <form onSubmit={save} className="space-y-4">
             <div className="space-y-2">
-              <Label>E-post</Label>
+              <Label>Nuvarande e-post</Label>
               <Input value={user!.email ?? ""} disabled />
             </div>
             <div className="space-y-2">
@@ -66,6 +78,26 @@ function ProfilePage() {
               <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} />
             </div>
             <Button type="submit" disabled={saving}>{saving ? "Sparar…" : "Spara"}</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Byt e-postadress</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={changeEmail} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-email">Ny e-post</Label>
+              <Input id="new-email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="ny@adress.se" />
+              <p className="text-xs text-muted-foreground">
+                En bekräftelselänk skickas till båda adresserna. Bytet aktiveras när du klickat på länken.
+              </p>
+            </div>
+            <Button type="submit" disabled={emailSaving || !newEmail.trim() || newEmail === user!.email}>
+              {emailSaving ? "Skickar…" : "Skicka bekräftelse"}
+            </Button>
           </form>
         </CardContent>
       </Card>

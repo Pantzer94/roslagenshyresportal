@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          tenant_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          tenant_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          tenant_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_tickets: {
         Row: {
           category: Database["public"]["Enums"]["ticket_category"]
@@ -51,6 +95,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "maintenance_tickets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_is_admin: boolean
+          sender_user_id: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_is_admin: boolean
+          sender_user_id: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_is_admin?: boolean
+          sender_user_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -139,6 +221,8 @@ export type Database = {
           apartment_number: string | null
           created_at: string
           email: string | null
+          flag_note: string | null
+          flagged: boolean
           full_name: string
           id: string
           monthly_rent: number | null
@@ -153,6 +237,8 @@ export type Database = {
           apartment_number?: string | null
           created_at?: string
           email?: string | null
+          flag_note?: string | null
+          flagged?: boolean
           full_name: string
           id?: string
           monthly_rent?: number | null
@@ -167,6 +253,8 @@ export type Database = {
           apartment_number?: string | null
           created_at?: string
           email?: string | null
+          flag_note?: string | null
+          flagged?: boolean
           full_name?: string
           id?: string
           monthly_rent?: number | null
@@ -176,6 +264,47 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      ticket_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          ticket_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          ticket_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          ticket_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_comments: {
         Row: {
