@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -62,6 +62,7 @@ function AdminTenantsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-8"></TableHead>
                     <TableHead>Namn</TableHead>
                     <TableHead>Lgh</TableHead>
                     <TableHead>E-post</TableHead>
@@ -73,6 +74,13 @@ function AdminTenantsPage() {
                 <TableBody>
                   {filtered.map((t: any) => (
                     <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.assign(`/admin/tenants/${t.id}`)}>
+                      <TableCell>
+                        {t.flagged && (
+                          <span title={t.flag_note ?? "Markerad"}>
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         <Link to="/admin/tenants/$id" params={{ id: t.id }} className="hover:text-accent">{t.full_name}</Link>
                       </TableCell>
