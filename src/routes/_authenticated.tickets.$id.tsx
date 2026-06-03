@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDate, ticketCategoryLabel } from "@/lib/format";
 import { TicketStatusBadge, PriorityBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
+import { Paperclip, Download, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/tickets/$id")({
   component: TicketDetailPage,
@@ -38,6 +40,14 @@ function TicketDetailPage() {
     },
   });
 
+  const { data: attachments } = useQuery({
+    queryKey: ["ticket-attachments", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("ticket_attachments").select("*").eq("ticket_id", id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   async function updateStatus(newStatus: string) {
     const { error } = await supabase.from("maintenance_tickets").update({ status: newStatus as any }).eq("id", id);
     if (error) toast.error(error.message);
@@ -54,6 +64,34 @@ function TicketDetailPage() {
     setPosting(false);
     if (error) toast.error(error.message);
     else { setComment(""); qc.invalidateQueries({ queryKey: ["ticket-comments", id] }); }
+  }
+
+  async function uploadAttachment(file: File) {
+    const path = `${id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error: upErr } = await supabase.storage.from("ticket-attachments").upload(path, file);
+    if (upErr) { toast.error("Uppladdning misslyckades", { description: upErr.message }); return; }
+    const { error: insErr } = await supabase.from("ticket_attachments").insert({
+      ticket_id: id, file_path: path, file_name: file.name,
+      mime_type: file.type || null, size_bytes: file.size, uploaded_by: user!.id,
+    });
+    if (insErr) { toast.error("Kunde inte spara bilaga", { description: insErr.message }); return; }
+    toast.success("Bilaga uppladdad");
+    qc.invalidateQueries({ queryKey: ["ticket-attachments", id] });
+  }
+
+  async function downloadAttachment(path: string, name: string) {
+    const { data, error } = await supabase.storage.from("ticket-attachments").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) { toast.error("Kunde inte hämta länk"); return; }
+    const a = document.createElement("a");
+    a.href = data.signedUrl; a.download = name; a.target = "_blank"; a.click();
+  }
+
+  async function deleteAttachment(attId: string, path: string) {
+    if (role !== "admin") return;
+    await supabase.storage.from("ticket-attachments").remove([path]);
+    const { error } = await supabase.from("ticket_attachments").delete().eq("id", attId);
+    if (error) toast.error(error.message);
+    else qc.invalidateQueries({ queryKey: ["ticket-attachments", id] });
   }
 
   if (!ticket) return <p className="text-muted-foreground">Läser in…</p>;
@@ -87,6 +125,33 @@ function TicketDetailPage() {
       {ticket.description && (
         <Card><CardContent className="pt-6 whitespace-pre-wrap text-sm">{ticket.description}</CardContent></Card>
       )}
+
+      <Card>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Paperclip className="h-4 w-4" /> Bilagor</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {!attachments?.length ? (
+            <p className="text-sm text-muted-foreground">Inga bilagor.</p>
+          ) : (
+            <div className="space-y-2">
+              {attachments.map((a: any) => (
+                <div key={a.id} className="flex items-center justify-between gap-3 p-2 rounded border border-border">
+                  <div className="text-sm truncate">{a.file_name}</div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button size="sm" variant="ghost" onClick={() => downloadAttachment(a.file_path, a.file_name)}><Download className="h-4 w-4" /></Button>
+                    {role === "admin" && (
+                      <Button size="sm" variant="ghost" onClick={() => deleteAttachment(a.id, a.file_path)}><Trash2 className="h-4 w-4" /></Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <Input
+            type="file"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) { uploadAttachment(f); e.target.value = ""; } }}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>Kommentarer</CardTitle></CardHeader>
