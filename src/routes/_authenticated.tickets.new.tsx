@@ -41,7 +41,7 @@ function NewTicketPage() {
       tenant = { id: linkedId } as any;
     }
     const { error } = await supabase.from("maintenance_tickets").insert({
-      tenant_id: tenant.id,
+      tenant_id: tenant!.id,
       title: title.trim(),
       category: category as any,
       priority: priority as any,
