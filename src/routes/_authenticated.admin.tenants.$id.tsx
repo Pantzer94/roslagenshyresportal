@@ -18,6 +18,8 @@ import { RentStatusBadge, TicketStatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { ArrowLeft, AlertTriangle, Trash2, Upload, Download, FileText } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { adminUpdateTenantLoginEmail } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
   component: AdminTenantDetailPage,
@@ -28,6 +30,7 @@ function AdminTenantDetailPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const changeLoginEmail = useServerFn(adminUpdateTenantLoginEmail);
 
   const { data: tenant } = useQuery({
     queryKey: ["tenant", id],
@@ -101,13 +104,17 @@ function AdminTenantDetailPage() {
   }
 
   async function uploadDocument(file: File, description: string) {
+    // Re-read the current user at click time (don't rely on possibly-stale hook state)
+    const { data: au } = await supabase.auth.getUser();
+    const uid = au?.user?.id ?? user?.id;
+    if (!uid) { toast.error("Du verkar vara utloggad — logga in igen."); return; }
     const path = `${id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
     if (upErr) { toast.error("Uppladdning misslyckades", { description: upErr.message }); return; }
     const { error: insErr } = await supabase.from("documents").insert({
       tenant_id: id, file_path: path, file_name: file.name,
       mime_type: file.type || null, size_bytes: file.size,
-      description: description || null, uploaded_by: user!.id,
+      description: description || null, uploaded_by: uid,
     });
     if (insErr) { toast.error("Kunde inte spara dokument", { description: insErr.message }); return; }
     toast.success("Dokument uppladdat");
@@ -203,6 +210,21 @@ function AdminTenantDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <LoginEmailCard
+        currentEmail={tenant.email ?? ""}
+        hasUser={!!tenant.user_id}
+        onChange={async (newEmail) => {
+          try {
+            await changeLoginEmail({ data: { tenant_id: id, new_email: newEmail } });
+            toast.success(tenant.user_id ? "Login-e-post uppdaterad" : "E-post uppdaterad (kopplas vid första inloggning)");
+            qc.invalidateQueries({ queryKey: ["tenant", id] });
+            qc.invalidateQueries({ queryKey: ["admin-tenants"] });
+          } catch (e: any) {
+            toast.error("Kunde inte byta e-post", { description: e?.message ?? String(e) });
+          }
+        }}
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
