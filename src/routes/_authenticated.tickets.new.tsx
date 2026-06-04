@@ -27,8 +27,19 @@ function NewTicketPage() {
     e.preventDefault();
     if (title.trim().length < 3) { toast.error("Titeln måste vara minst 3 tecken"); return; }
     setSaving(true);
-    const { data: tenant } = await supabase.from("tenants").select("id").eq("user_id", user!.id).maybeSingle();
-    if (!tenant) { setSaving(false); toast.error("Din profil är inte kopplad till en hyresgäst."); return; }
+    let { data: tenant } = await supabase.from("tenants").select("id").eq("user_id", user!.id).maybeSingle();
+    if (!tenant) {
+      // Try case-insensitive self-link via RPC (matches tenants.email to auth.users.email)
+      const { data: linkedId, error: linkErr } = await supabase.rpc("link_self_to_tenant");
+      if (linkErr || !linkedId) {
+        setSaving(false);
+        toast.error("Din profil är inte kopplad till en hyresgäst.", {
+          description: "Kontakta hyresvärden så att rätt e-postadress läggs in.",
+        });
+        return;
+      }
+      tenant = { id: linkedId } as any;
+    }
     const { error } = await supabase.from("maintenance_tickets").insert({
       tenant_id: tenant.id,
       title: title.trim(),
