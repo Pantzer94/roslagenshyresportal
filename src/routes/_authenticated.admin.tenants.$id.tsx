@@ -338,3 +338,47 @@ function DocumentUpload({ onUpload }: { onUpload: (file: File, description: stri
     </form>
   );
 }
+
+function LoginEmailCard({
+  currentEmail,
+  hasUser,
+  onChange,
+}: {
+  currentEmail: string;
+  hasUser: boolean;
+  onChange: (newEmail: string) => Promise<void>;
+}) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setEmail(currentEmail); }, [currentEmail]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || trimmed === currentEmail) return;
+    setBusy(true);
+    try { await onChange(trimmed); } finally { setBusy(false); }
+  }
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Login-e-post</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          {hasUser
+            ? "Ändrar både Auth-kontots inloggning och visningsadressen. Hyresgästen behöver ingen bekräftelse."
+            : "Hyresgästen har inte registrerat sig ännu. Ändring uppdaterar adressen som krävs vid registrering."}
+        </p>
+        <form onSubmit={submit} className="flex gap-2 items-end">
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="login-email">Ny e-post</Label>
+            <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <Button type="submit" disabled={busy || !email.trim() || email.trim() === currentEmail}>
+            {busy ? "Sparar…" : "Byt login-e-post"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
