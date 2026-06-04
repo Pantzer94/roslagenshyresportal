@@ -39,7 +39,7 @@ export function MessageThread({ tenantId }: { tenantId: string }) {
       .filter((m: any) => !m.read_at && m.sender_is_admin !== isAdmin)
       .map((m: any) => m.id);
     if (unreadIds.length === 0) return;
-    supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds).then(() => {
+    supabase.rpc("mark_messages_read", { p_ids: unreadIds }).then(() => {
       qc.invalidateQueries({ queryKey: ["admin-conversations"] });
     });
   }, [messages, role, qc]);

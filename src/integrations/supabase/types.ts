@@ -372,6 +372,7 @@ export type Database = {
         Returns: boolean
       }
       link_self_to_tenant: { Args: never; Returns: string }
+      mark_messages_read: { Args: { p_ids: string[] }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "tenant"
