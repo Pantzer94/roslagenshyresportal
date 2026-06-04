@@ -214,7 +214,7 @@ function AdminTenantDetailPage() {
       <LoginEmailCard
         currentEmail={tenant.email ?? ""}
         hasUser={!!tenant.user_id}
-        onChange={async (newEmail) => {
+        onChange={async (newEmail: string) => {
           try {
             await changeLoginEmail({ data: { tenant_id: id, new_email: newEmail } });
             toast.success(tenant.user_id ? "Login-e-post uppdaterad" : "E-post uppdaterad (kopplas vid första inloggning)");
