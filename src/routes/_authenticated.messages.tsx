@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 import { MessageThread } from "@/components/MessageThread";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   component: MessagesPage,
@@ -79,11 +79,11 @@ function MessagesPage() {
           ) : (
             <div className="divide-y divide-border">
               {conversations.map((c: any) => (
-                <Link
+                <button
+                  type="button"
                   key={c.id}
-                  to="/messages/$tenantId"
-                  params={{ tenantId: c.id }}
-                  className="flex items-center justify-between gap-3 py-3 px-1 hover:bg-muted/50 rounded"
+                  onClick={() => navigate({ to: "/messages/$tenantId", params: { tenantId: c.id } })}
+                  className="w-full text-left flex items-center justify-between gap-3 py-3 px-2 hover:bg-muted/50 rounded"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -104,8 +104,9 @@ function MessagesPage() {
                     {c.unread > 0 && (
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent text-accent-foreground">{c.unread}</span>
                     )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                </Link>
+                </button>
               ))}
             </div>
           )}

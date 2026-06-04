@@ -18,6 +18,8 @@ import { RentStatusBadge, TicketStatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { ArrowLeft, AlertTriangle, Trash2, Upload, Download, FileText } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { adminUpdateTenantLoginEmail } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
   component: AdminTenantDetailPage,
@@ -28,6 +30,7 @@ function AdminTenantDetailPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const changeLoginEmail = useServerFn(adminUpdateTenantLoginEmail);
 
   const { data: tenant } = useQuery({
     queryKey: ["tenant", id],
@@ -101,13 +104,17 @@ function AdminTenantDetailPage() {
   }
 
   async function uploadDocument(file: File, description: string) {
+    // Re-read the current user at click time (don't rely on possibly-stale hook state)
+    const { data: au } = await supabase.auth.getUser();
+    const uid = au?.user?.id ?? user?.id;
+    if (!uid) { toast.error("Du verkar vara utloggad — logga in igen."); return; }
     const path = `${id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
     if (upErr) { toast.error("Uppladdning misslyckades", { description: upErr.message }); return; }
     const { error: insErr } = await supabase.from("documents").insert({
       tenant_id: id, file_path: path, file_name: file.name,
       mime_type: file.type || null, size_bytes: file.size,
-      description: description || null, uploaded_by: user!.id,
+      description: description || null, uploaded_by: uid,
     });
     if (insErr) { toast.error("Kunde inte spara dokument", { description: insErr.message }); return; }
     toast.success("Dokument uppladdat");
@@ -203,6 +210,21 @@ function AdminTenantDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <LoginEmailCard
+        currentEmail={tenant.email ?? ""}
+        hasUser={!!tenant.user_id}
+        onChange={async (newEmail: string) => {
+          try {
+            await changeLoginEmail({ data: { tenant_id: id, new_email: newEmail } });
+            toast.success(tenant.user_id ? "Login-e-post uppdaterad" : "E-post uppdaterad (kopplas vid första inloggning)");
+            qc.invalidateQueries({ queryKey: ["tenant", id] });
+            qc.invalidateQueries({ queryKey: ["admin-tenants"] });
+          } catch (e: any) {
+            toast.error("Kunde inte byta e-post", { description: e?.message ?? String(e) });
+          }
+        }}
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -314,5 +336,49 @@ function DocumentUpload({ onUpload }: { onUpload: (file: File, description: stri
         <Upload className="h-4 w-4 mr-1" /> {busy ? "Laddar…" : "Ladda upp"}
       </Button>
     </form>
+  );
+}
+
+function LoginEmailCard({
+  currentEmail,
+  hasUser,
+  onChange,
+}: {
+  currentEmail: string;
+  hasUser: boolean;
+  onChange: (newEmail: string) => Promise<void>;
+}) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setEmail(currentEmail); }, [currentEmail]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || trimmed === currentEmail) return;
+    setBusy(true);
+    try { await onChange(trimmed); } finally { setBusy(false); }
+  }
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Login-e-post</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          {hasUser
+            ? "Ändrar både Auth-kontots inloggning och visningsadressen. Hyresgästen behöver ingen bekräftelse."
+            : "Hyresgästen har inte registrerat sig ännu. Ändring uppdaterar adressen som krävs vid registrering."}
+        </p>
+        <form onSubmit={submit} className="flex gap-2 items-end">
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="login-email">Ny e-post</Label>
+            <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <Button type="submit" disabled={busy || !email.trim() || email.trim() === currentEmail}>
+            {busy ? "Sparar…" : "Byt login-e-post"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

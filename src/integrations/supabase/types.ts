@@ -371,6 +371,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_self_to_tenant: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "tenant"
