@@ -1,48 +1,84 @@
-## Vad jag hittade vid genomgång
+## Vad jag bygger
 
-Koden ser i grunden korrekt ut för alla fem punkterna — RLS, FK-cascade (alla relevanta tabeller har `ON DELETE CASCADE` mot `tenants`), enums och defaults stämmer. Att felen ändå inträffar i UI:t pekar på små men avgörande detaljer. Planen nedan både fixar de mest sannolika orsakerna och lägger till en saknad funktion (admin-styrt e-postbyte).
+### 1. Adress + område (gata, postnr, ort + område-dropdown)
 
-### 1. Admin kan inte öppna/svara på meddelanden
-Trolig orsak: I `_authenticated.messages.tsx` renderar admin-vyn en lista där varje konversation är en `<Link to="/messages/$tenantId">`. Men sidan ligger på samma route (`/messages`), och när man navigerar till `/messages/<id>` byts hela rutan — det fungerar tekniskt, men det finns ingen visuell respons om query-cachen för `admin-conversations` "blockerar" navigeringen i mobil-vy (Link inuti scrollbar div). Åtgärd:
-- Byt `<Link>` mot `useNavigate()` på rad-klick för säkerhet, och behåll Link semantiskt.
-- Säkerställ att `/messages/$tenantId` faktiskt mountas: läs ut `tenant` via `useQuery` med tydligt fallback ("Hittades inte") och visa felet om RLS skulle blockera.
-- Lägg till en explicit "Öppna" knapp per rad så det är glasklart vad som händer.
+**Databas (migration):**
+- `tenants` får nya kolumner: `street`, `postal_code`, `city`, `area_id` (FK).
+- Migrerar befintlig `address` → `street` automatiskt; `address`-kolumnen behålls (deprecated) tills allt är migrerat.
+- Ny tabell `areas` (`id`, `name`, `created_at`) — admin hanterar listan. RLS: admin full åtkomst, inloggade får läsa.
 
-### 2. Hyresgäst kan inte skapa nya ärenden
-Trolig orsak: Hyresgästens `tenants.user_id` är inte länkad (registrering med annan e-post-casing eller efter att admin ändrat e-post). Då tar `tickets/new` toast: "Din profil är inte kopplad till en hyresgäst.". Åtgärd:
-- Lägg till case-insensitiv backup-länkning vid första `/dashboard`-laddning för hyresgäst: om `tenants.user_id IS NULL` men `lower(email) = lower(auth.email)` så UPDATE tenant.user_id = auth.uid().
-- Visa tydligare felmeddelande i UI som ber hyresgästen kontakta hyresvärden om kopplingen saknas.
-- Kontrollera att "Nytt ärende"-knappen syns korrekt i `/tickets`-listan (lägg in i header om saknas).
+**UI:**
+- Ny sida `/admin/areas` (CRUD: lägg till, byt namn, ta bort om tomt).
+- Hyresgästformulär (nytt + redigera): separata fält Gata, Postnr, Ort + dropdown Område (med "Nytt område…" inline).
+- Hyresgästlista (`/admin/tenants`): ny kolumn **Område** + filter-chips ovanför tabellen ("Alla", "Stava (5)", "Norrtälje (13)" …) som filtrerar listan.
+- Ärendelista (`/admin/tickets` & `/tickets`): visar område-badge per rad + filter på område.
+- Dashboard (admin): kort "Hyresgäster per område" (lista med antal, klick → filtrerad hyresgästlista).
 
-### 3. Hyresvärd kan inte ladda upp dokument
-Trolig orsak: Storage-policyn för bucket `documents` är `ALL` för admin — fungerar. Men `documents`-tabellens INSERT kräver `uploaded_by = auth.uid()`. Om `useAuth().user` är `undefined` vid klick (race) blir `user!.id` `undefined` → 23502 NOT NULL eller policyfel. Åtgärd:
-- Hämta `auth.getUser()` direkt vid uppladdning istället för att lita på hook-state.
-- Visa råa Supabase-felmeddelandet i toast så vi ser exakt vad som händer om det fortfarande felar.
+### 2. Prioritet på ärenden — endast admin
 
-### 4. Ta bort hyresgäst + flagga/anteckning
-Koden finns redan (röd knapp med AlertDialog, Switch + Textarea). Om de "inte funkar" är trolig orsak att klicket inom `<Card>` propagerar eller att raden i `admin/tenants`-listan har `onClick` som tar över. Åtgärd:
-- Stoppa eventbubblning på rad-onClick så att andra interaktioner inte konkurrerar.
-- Bekräfta att Spara-knappen faktiskt skickar `flagged` + `flag_note` (verifierat — ser korrekt ut, men lägg in toast som syns alltid).
-- Lägg till `e.stopPropagation()` runt AlertDialogTrigger och Spara.
+- Tar bort prioritetsväljaren från hyresgästens "Nytt ärende"-formulär. Hyresgäst väljer bara kategori + titel + beskrivning.
+- Nya ärenden får `priority = 'normal'` som default.
+- Admin kan sätta/ändra prioritet i ärendets detaljvy (finns redan, säkerställs).
+- Hyresgäst ser prioriteten read-only när admin har satt den.
 
-### 5. Vad händer om hyresgästen byter e-post?
-Idag: tenant.email och auth.users.email är två separata fält. Om hyresgästen byter sin login-e-post i Supabase Auth (t.ex. via "Min profil") så uppdateras INTE `tenants.email`, och eftersom `handle_new_user` bara används vid registrering så blir det ingen ny koppling. De kan fortfarande logga in (auth fungerar på `user_id`), men admin ser fel e-post i listan.
+### 3. Personlig dashboard-hälsning
 
-Åtgärd:
-- Hyresgästen får INTE byta login-e-post själv i UI (dölj/blockera fältet i `/profile` för rollen tenant).
-- Admin kan byta hyresgästens e-post på två sätt:
-  a) **Bara visningsdata** (vanligast): ändra i `tenants.email`. Påverkar inte login.
-  b) **Login-e-post**: ny server-funktion `adminUpdateTenantEmail(tenant_id, new_email)` som via `supabaseAdmin.auth.admin.updateUserById()` byter både auth-e-post och tenants.email i en transaktion.
-- Lägg en DB-trigger: om `tenants.user_id` är `NULL` och någon registrerar sig med matchande e-post, koppla auto (redan finns i `handle_new_user`). Behåll.
-- Dokumentera i UI: liten info-text vid e-postfältet "Detta är endast visningsadress. Använd 'Byt login-e-post' för att ändra inloggningen."
+- Admin-dashboard: "Välkommen tillbaka, **{förnamn}**" istället för "Hyresvärd". Hämtar från `profiles.full_name` (eller email-prefix som fallback).
+- Hyresgäst-dashboard: samma mönster.
 
-## Tekniska detaljer
+### 4. Mobilanpassning (admin + hyresgäst)
 
-- Ny serverFn: `src/lib/admin.functions.ts` → `adminUpdateTenantEmail` (middleware: `requireSupabaseAuth` + admin-check via `has_role`). Använder `supabaseAdmin.auth.admin.updateUserById` + UPDATE på `tenants`.
-- Ingen ny migration nödvändig för buggfixarna. Eventuellt trigger som speglar `auth.users.email`-ändringar till `tenants.email` (valbart — frågar nedan).
-- Inga schemaändringar för flag/delete (kolumnerna finns).
+- AppShell: sidomenyn blir en hamburgermeny under 768px (Sheet-komponent).
+- Alla tabeller (`hyresgäster`, `ärenden`, `hyror`, `meddelanden`) får card-layout på mobil (`md:hidden` cards + `hidden md:table`).
+- Formulär: full bredd, större touch-targets, knappar `w-full sm:w-auto`.
+- Dashboard-kort: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`.
 
-## Frågor jag behöver svar på innan implementation
+### 5. Mail-notiser
 
-1. Vill du att admin ska kunna byta hyresgästens **login-e-post** (kräver Admin API) eller räcker det att admin kan ändra visningsadressen i `tenants` och hyresgästen själv byter sin login i sitt konto?
-2. För "delete tenant" — vill du behålla själva auth-kontot (de kan logga in men har ingen tenant-koppling) eller ska vi även radera auth.users-kontot (helt borttaget)?
+**Setup:** Lovable Emails (inbyggt) — sätter upp e-postdomän + transactional templates.
+
+**Triggers (alla via serverFn, idempotenta):**
+- **Nytt ärende** → mail till alla admins.
+- **Nytt meddelande** → mail till mottagaren (admin eller hyresgäst) om meddelandet inte lästs inom ~5 min (pg_cron-batch så vi inte spammar vid aktiv chatt).
+- **Ny faktura** → mail till hyresgäst (manuell trigger, se punkt 6).
+- **Påminnelse obetald hyra** → pg_cron varje morgon, skickar 3 dagar efter förfallodatum + en gång till efter 10 dagar.
+
+**Per-hyresgäst på/av** (frivilligt men föreslås): `tenants.notify_email boolean default true`.
+
+### 6. Fakturaflöde (300 hyresgäster)
+
+- "Skapa månadens hyror"-knapp genererar `rent_invoices` för alla aktiva hyresgäster (idempotent på (tenant_id, period)).
+- **Skickar INTE mail automatiskt.** Efter generering visas en lista "X fakturor klara att skickas" med knapp "Skicka mail till alla" + per-rad "Skicka".
+- ServerFn `sendInvoiceEmails` köar via Lovable Emails queue (klarar 300 utan tidsgräns).
+- Status per faktura: `email_sent_at` kolumn så admin ser vad som skickats.
+
+### 7. Övrigt jag rekommenderar för 300 hyresgäster
+
+Föreslås men implementeras bara om du tycker det låter bra (säg till så lägger jag till i bygget):
+
+- **Bulk-import CSV** av hyresgäster (initial uppladdning av 300 stycken).
+- **Sök överallt** (global sökruta i headern: hyresgäst, ärende, lägenhet).
+- **Excel-export** av hyror/fakturor per månad (för bokföring).
+- **Anteckningsfält per ärende** för admins (intern, syns inte för hyresgäst).
+- **"Mina ärenden"-filter på admin** (tilldelade till mig) om flera admins.
+- **Snabbåtgärder från ärendelistan** (ändra status utan att öppna).
+- **Statistik på dashboard**: obetalda hyror denna månad, öppna ärenden per område, äldsta öppna ärendet.
+
+### Frågor om notiser/fakturering
+
+- **Notiser går via mail.** Push-notiser i mobilen kräver PWA + native — inte med i denna runda om du inte vill.
+- **Fakturor skickas inte automatiskt** — du klickar "Skicka" när du är redo (säkrare för 300 mottagare).
+
+## Teknisk sammanfattning
+
+- Migrations: `areas` + nya `tenants`-kolumner + `rent_invoices.email_sent_at` + `notify_email`.
+- ServerFns: `sendTicketCreatedEmail`, `sendNewMessageEmail`, `sendInvoiceEmails`, `sendOverdueReminders`.
+- pg_cron: `process-overdue-rents` dagligen 08:00, `process-unread-messages` var 5:e minut.
+- Email infra: `setup_email_infra` + `scaffold_transactional_email` + 4 templates (ärende, meddelande, faktura, påminnelse).
+- Mobil: `useIsMobile` + `Sheet` för nav + responsiva tabell-cards.
+
+## Vad jag behöver innan implementation
+
+1. **Område-tabell** — okej att jag skapar tom lista och du fyller på själv via `/admin/areas`? Eller vill du att jag seedar med några exempel (Stava, Norrtälje, Lervik)?
+2. **E-postdomän** — har du redan en domän du vill skicka från (t.ex. `noreply@dittforetag.se`), eller ska jag använda Lovables standarddomän tills vidare?
+3. **"Övrigt"-listan** under punkt 7 — vill du ha allt, inget, eller markera vilka jag ska ta med nu?
