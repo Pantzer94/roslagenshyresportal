@@ -12,7 +12,7 @@ import { Plus, Search, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/tenants")({
+export const Route = createFileRoute("/_authenticated/admin/tenants/")({
   component: AdminTenantsPage,
 });
 

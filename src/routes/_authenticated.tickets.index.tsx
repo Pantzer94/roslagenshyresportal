@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatDate, ticketCategoryLabel } from "@/lib/format";
 import { TicketStatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
-export const Route = createFileRoute("/_authenticated/tickets")({
+export const Route = createFileRoute("/_authenticated/tickets/")({
   component: TicketsListPage,
 });
 
