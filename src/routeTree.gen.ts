@@ -14,19 +14,19 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedTicketsRouteImport } from './routes/_authenticated.tickets'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated.payments'
-import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated.messages'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated.documents'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as AuthenticatedTicketsIndexRouteImport } from './routes/_authenticated.tickets.index'
+import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated.messages.index'
 import { Route as AuthenticatedTicketsNewRouteImport } from './routes/_authenticated.tickets.new'
 import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authenticated.tickets.$id'
 import { Route as AuthenticatedMessagesTenantIdRouteImport } from './routes/_authenticated.messages.$tenantId'
 import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated.admin.tickets'
-import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated.admin.tenants'
 import { Route as AuthenticatedAdminRentRouteImport } from './routes/_authenticated.admin.rent'
+import { Route as AuthenticatedAdminTenantsIndexRouteImport } from './routes/_authenticated.admin.tenants.index'
 import { Route as AuthenticatedAdminTenantsIdRouteImport } from './routes/_authenticated.admin.tenants.$id'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -53,11 +53,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTicketsRoute = AuthenticatedTicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -66,11 +61,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
@@ -88,21 +78,33 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTicketsIndexRoute =
+  AuthenticatedTicketsIndexRouteImport.update({
+    id: '/tickets/',
+    path: '/tickets/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMessagesIndexRoute =
+  AuthenticatedMessagesIndexRouteImport.update({
+    id: '/messages/',
+    path: '/messages/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedTicketsNewRoute = AuthenticatedTicketsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AuthenticatedTicketsRoute,
+  id: '/tickets/new',
+  path: '/tickets/new',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedTicketsIdRoute = AuthenticatedTicketsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedTicketsRoute,
+  id: '/tickets/$id',
+  path: '/tickets/$id',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMessagesTenantIdRoute =
   AuthenticatedMessagesTenantIdRouteImport.update({
-    id: '/$tenantId',
-    path: '/$tenantId',
-    getParentRoute: () => AuthenticatedMessagesRoute,
+    id: '/messages/$tenantId',
+    path: '/messages/$tenantId',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminTicketsRoute =
   AuthenticatedAdminTicketsRouteImport.update({
@@ -110,22 +112,22 @@ const AuthenticatedAdminTicketsRoute =
     path: '/tickets',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminTenantsRoute =
-  AuthenticatedAdminTenantsRouteImport.update({
-    id: '/tenants',
-    path: '/tenants',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedAdminRentRoute = AuthenticatedAdminRentRouteImport.update({
   id: '/rent',
   path: '/rent',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminTenantsIndexRoute =
+  AuthenticatedAdminTenantsIndexRouteImport.update({
+    id: '/tenants/',
+    path: '/tenants/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTenantsIdRoute =
   AuthenticatedAdminTenantsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminTenantsRoute,
+    id: '/tenants/$id',
+    path: '/tenants/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -136,17 +138,17 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
-  '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
   '/admin/rent': typeof AuthenticatedAdminRentRoute
-  '/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/tickets/': typeof AuthenticatedTicketsIndexRoute
   '/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
+  '/admin/tenants/': typeof AuthenticatedAdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -156,17 +158,17 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
-  '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/tickets': typeof AuthenticatedTicketsRouteWithChildren
   '/admin/rent': typeof AuthenticatedAdminRentRoute
-  '/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
   '/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/messages': typeof AuthenticatedMessagesIndexRoute
+  '/tickets': typeof AuthenticatedTicketsIndexRoute
   '/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
+  '/admin/tenants': typeof AuthenticatedAdminTenantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,17 +180,17 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
-  '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/tickets': typeof AuthenticatedTicketsRouteWithChildren
   '/_authenticated/admin/rent': typeof AuthenticatedAdminRentRoute
-  '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRouteWithChildren
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
   '/_authenticated/tickets/$id': typeof AuthenticatedTicketsIdRoute
   '/_authenticated/tickets/new': typeof AuthenticatedTicketsNewRoute
+  '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/_authenticated/tickets/': typeof AuthenticatedTicketsIndexRoute
   '/_authenticated/admin/tenants/$id': typeof AuthenticatedAdminTenantsIdRoute
+  '/_authenticated/admin/tenants/': typeof AuthenticatedAdminTenantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,17 +202,17 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/documents'
-    | '/messages'
     | '/payments'
     | '/profile'
-    | '/tickets'
     | '/admin/rent'
-    | '/admin/tenants'
     | '/admin/tickets'
     | '/messages/$tenantId'
     | '/tickets/$id'
     | '/tickets/new'
+    | '/messages/'
+    | '/tickets/'
     | '/admin/tenants/$id'
+    | '/admin/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -220,17 +222,17 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/documents'
-    | '/messages'
     | '/payments'
     | '/profile'
-    | '/tickets'
     | '/admin/rent'
-    | '/admin/tenants'
     | '/admin/tickets'
     | '/messages/$tenantId'
     | '/tickets/$id'
     | '/tickets/new'
+    | '/messages'
+    | '/tickets'
     | '/admin/tenants/$id'
+    | '/admin/tenants'
   id:
     | '__root__'
     | '/'
@@ -241,17 +243,17 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/documents'
-    | '/_authenticated/messages'
     | '/_authenticated/payments'
     | '/_authenticated/profile'
-    | '/_authenticated/tickets'
     | '/_authenticated/admin/rent'
-    | '/_authenticated/admin/tenants'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/messages/$tenantId'
     | '/_authenticated/tickets/$id'
     | '/_authenticated/tickets/new'
+    | '/_authenticated/messages/'
+    | '/_authenticated/tickets/'
     | '/_authenticated/admin/tenants/$id'
+    | '/_authenticated/admin/tenants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -299,13 +301,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/tickets': {
-      id: '/_authenticated/tickets'
-      path: '/tickets'
-      fullPath: '/tickets'
-      preLoaderRoute: typeof AuthenticatedTicketsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -318,13 +313,6 @@ declare module '@tanstack/react-router' {
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/messages': {
-      id: '/_authenticated/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/documents': {
@@ -348,39 +336,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/tickets/': {
+      id: '/_authenticated/tickets/'
+      path: '/tickets'
+      fullPath: '/tickets/'
+      preLoaderRoute: typeof AuthenticatedTicketsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/messages/': {
+      id: '/_authenticated/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tickets/new': {
       id: '/_authenticated/tickets/new'
-      path: '/new'
+      path: '/tickets/new'
       fullPath: '/tickets/new'
       preLoaderRoute: typeof AuthenticatedTicketsNewRouteImport
-      parentRoute: typeof AuthenticatedTicketsRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/tickets/$id': {
       id: '/_authenticated/tickets/$id'
-      path: '/$id'
+      path: '/tickets/$id'
       fullPath: '/tickets/$id'
       preLoaderRoute: typeof AuthenticatedTicketsIdRouteImport
-      parentRoute: typeof AuthenticatedTicketsRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/messages/$tenantId': {
       id: '/_authenticated/messages/$tenantId'
-      path: '/$tenantId'
+      path: '/messages/$tenantId'
       fullPath: '/messages/$tenantId'
       preLoaderRoute: typeof AuthenticatedMessagesTenantIdRouteImport
-      parentRoute: typeof AuthenticatedMessagesRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/tickets': {
       id: '/_authenticated/admin/tickets'
       path: '/tickets'
       fullPath: '/admin/tickets'
       preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/tenants': {
-      id: '/_authenticated/admin/tenants'
-      path: '/tenants'
-      fullPath: '/admin/tenants'
-      preLoaderRoute: typeof AuthenticatedAdminTenantsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/rent': {
@@ -390,89 +385,64 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRentRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/tenants/': {
+      id: '/_authenticated/admin/tenants/'
+      path: '/tenants'
+      fullPath: '/admin/tenants/'
+      preLoaderRoute: typeof AuthenticatedAdminTenantsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/tenants/$id': {
       id: '/_authenticated/admin/tenants/$id'
-      path: '/$id'
+      path: '/tenants/$id'
       fullPath: '/admin/tenants/$id'
       preLoaderRoute: typeof AuthenticatedAdminTenantsIdRouteImport
-      parentRoute: typeof AuthenticatedAdminTenantsRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
-interface AuthenticatedAdminTenantsRouteChildren {
-  AuthenticatedAdminTenantsIdRoute: typeof AuthenticatedAdminTenantsIdRoute
-}
-
-const AuthenticatedAdminTenantsRouteChildren: AuthenticatedAdminTenantsRouteChildren =
-  {
-    AuthenticatedAdminTenantsIdRoute: AuthenticatedAdminTenantsIdRoute,
-  }
-
-const AuthenticatedAdminTenantsRouteWithChildren =
-  AuthenticatedAdminTenantsRoute._addFileChildren(
-    AuthenticatedAdminTenantsRouteChildren,
-  )
-
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminRentRoute: typeof AuthenticatedAdminRentRoute
-  AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRouteWithChildren
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
+  AuthenticatedAdminTenantsIdRoute: typeof AuthenticatedAdminTenantsIdRoute
+  AuthenticatedAdminTenantsIndexRoute: typeof AuthenticatedAdminTenantsIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminRentRoute: AuthenticatedAdminRentRoute,
-  AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRouteWithChildren,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
+  AuthenticatedAdminTenantsIdRoute: AuthenticatedAdminTenantsIdRoute,
+  AuthenticatedAdminTenantsIndexRoute: AuthenticatedAdminTenantsIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedMessagesRouteChildren {
-  AuthenticatedMessagesTenantIdRoute: typeof AuthenticatedMessagesTenantIdRoute
-}
-
-const AuthenticatedMessagesRouteChildren: AuthenticatedMessagesRouteChildren = {
-  AuthenticatedMessagesTenantIdRoute: AuthenticatedMessagesTenantIdRoute,
-}
-
-const AuthenticatedMessagesRouteWithChildren =
-  AuthenticatedMessagesRoute._addFileChildren(
-    AuthenticatedMessagesRouteChildren,
-  )
-
-interface AuthenticatedTicketsRouteChildren {
-  AuthenticatedTicketsIdRoute: typeof AuthenticatedTicketsIdRoute
-  AuthenticatedTicketsNewRoute: typeof AuthenticatedTicketsNewRoute
-}
-
-const AuthenticatedTicketsRouteChildren: AuthenticatedTicketsRouteChildren = {
-  AuthenticatedTicketsIdRoute: AuthenticatedTicketsIdRoute,
-  AuthenticatedTicketsNewRoute: AuthenticatedTicketsNewRoute,
-}
-
-const AuthenticatedTicketsRouteWithChildren =
-  AuthenticatedTicketsRoute._addFileChildren(AuthenticatedTicketsRouteChildren)
-
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
-  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedTicketsRoute: typeof AuthenticatedTicketsRouteWithChildren
+  AuthenticatedMessagesTenantIdRoute: typeof AuthenticatedMessagesTenantIdRoute
+  AuthenticatedTicketsIdRoute: typeof AuthenticatedTicketsIdRoute
+  AuthenticatedTicketsNewRoute: typeof AuthenticatedTicketsNewRoute
+  AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
+  AuthenticatedTicketsIndexRoute: typeof AuthenticatedTicketsIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
-  AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedTicketsRoute: AuthenticatedTicketsRouteWithChildren,
+  AuthenticatedMessagesTenantIdRoute: AuthenticatedMessagesTenantIdRoute,
+  AuthenticatedTicketsIdRoute: AuthenticatedTicketsIdRoute,
+  AuthenticatedTicketsNewRoute: AuthenticatedTicketsNewRoute,
+  AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
+  AuthenticatedTicketsIndexRoute: AuthenticatedTicketsIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -489,3 +459,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
