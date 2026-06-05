@@ -18,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/admin/tenants/")({
 
 function AdminTenantsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -73,7 +74,7 @@ function AdminTenantsPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((t: any) => (
-                    <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.assign(`/admin/tenants/${t.id}`)}>
+                    <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/admin/tenants/$id", params: { id: t.id } })}>
                       <TableCell>
                         {t.flagged && (
                           <span title={t.flag_note ?? "Markerad"}>

@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/tickets/")({
 
 function TicketsListPage() {
   const { user, role } = useAuth();
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["my-tickets", user!.id],
     queryFn: async () => {
@@ -59,7 +60,7 @@ function TicketsListPage() {
                 </TableHeader>
                 <TableBody>
                   {data.map((t: any) => (
-                    <TableRow key={t.id} className="cursor-pointer" onClick={() => window.location.assign(`/tickets/${t.id}`)}>
+                    <TableRow key={t.id} className="cursor-pointer" onClick={() => navigate({ to: "/tickets/$id", params: { id: t.id } })}>
                       <TableCell className="font-medium">{t.title}</TableCell>
                       {role === "admin" && <TableCell>{t.tenants?.full_name ?? "—"}</TableCell>}
                       <TableCell>{ticketCategoryLabel[t.category]}</TableCell>
