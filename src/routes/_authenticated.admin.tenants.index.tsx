@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +12,13 @@ import { Plus, Search, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/tenants")({
+export const Route = createFileRoute("/_authenticated/admin/tenants/")({
   component: AdminTenantsPage,
 });
 
 function AdminTenantsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -73,7 +74,7 @@ function AdminTenantsPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((t: any) => (
-                    <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.location.assign(`/admin/tenants/${t.id}`)}>
+                    <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/admin/tenants/$id", params: { id: t.id } })}>
                       <TableCell>
                         {t.flagged && (
                           <span title={t.flag_note ?? "Markerad"}>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,12 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatDate, ticketCategoryLabel } from "@/lib/format";
 import { TicketStatusBadge, PriorityBadge } from "@/components/StatusBadge";
 
-export const Route = createFileRoute("/_authenticated/tickets")({
+export const Route = createFileRoute("/_authenticated/tickets/")({
   component: TicketsListPage,
 });
 
 function TicketsListPage() {
   const { user, role } = useAuth();
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["my-tickets", user!.id],
     queryFn: async () => {
@@ -59,7 +60,7 @@ function TicketsListPage() {
                 </TableHeader>
                 <TableBody>
                   {data.map((t: any) => (
-                    <TableRow key={t.id} className="cursor-pointer" onClick={() => window.location.assign(`/tickets/${t.id}`)}>
+                    <TableRow key={t.id} className="cursor-pointer" onClick={() => navigate({ to: "/tickets/$id", params: { id: t.id } })}>
                       <TableCell className="font-medium">{t.title}</TableCell>
                       {role === "admin" && <TableCell>{t.tenants?.full_name ?? "—"}</TableCell>}
                       <TableCell>{ticketCategoryLabel[t.category]}</TableCell>

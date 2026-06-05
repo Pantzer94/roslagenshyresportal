@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/format";
 import { MessageThread } from "@/components/MessageThread";
 import { MessageSquare, ChevronRight } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/messages")({
+export const Route = createFileRoute("/_authenticated/messages/")({
   component: MessagesPage,
 });
 
