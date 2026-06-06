@@ -140,6 +140,7 @@ function AdminDashboard() {
 }
 
 function TenantDashboard({ userId }: { userId: string }) {
+  const { user } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["tenant-dashboard", userId],
     queryFn: async () => {
@@ -167,8 +168,8 @@ function TenantDashboard({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold">Hej {data.tenant.full_name.split(" ")[0]}</h1>
-        <p className="text-muted-foreground mt-1">Här är en översikt av ditt boende.</p>
+        <h1 className="text-3xl font-semibold">Välkommen tillbaka, {data.tenant.full_name.split(" ")[0]}</h1>
+        <p className="text-muted-foreground mt-1">Här är en översikt av ditt boende{user?.email ? ` (${user.email})` : ""}.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
