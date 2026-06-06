@@ -20,6 +20,7 @@ import { ArrowLeft, AlertTriangle, Trash2, Upload, Download, FileText } from "lu
 import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
 import { adminUpdateTenantLoginEmail } from "@/lib/admin.functions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
   component: AdminTenantDetailPage,
@@ -35,7 +36,7 @@ function AdminTenantDetailPage() {
   const { data: tenant } = useQuery({
     queryKey: ["tenant", id],
     queryFn: async () => {
-      const { data } = await supabase.from("tenants").select("*").eq("id", id).maybeSingle();
+      const { data } = await supabase.from("tenants").select("*, areas(id, name)").eq("id", id).maybeSingle();
       return data;
     },
   });
@@ -64,15 +65,26 @@ function AdminTenantDetailPage() {
     },
   });
 
+  const { data: areas } = useQuery({
+    queryKey: ["areas"],
+    queryFn: async () => {
+      const { data } = await supabase.from("areas").select("*").order("name");
+      return data ?? [];
+    },
+  });
+
   const [form, setForm] = useState<any>({});
   useEffect(() => { if (tenant) setForm(tenant); }, [tenant]);
 
   async function save() {
     const { error } = await supabase.from("tenants").update({
-      full_name: form.full_name, email: form.email, phone: form.phone, address: form.address,
+      full_name: form.full_name, email: form.email, phone: form.phone,
+      street: form.street, postal_code: form.postal_code, city: form.city,
+      area_id: form.area_id || null,
       apartment_number: form.apartment_number, monthly_rent: Number(form.monthly_rent) || 0,
       notes: form.notes, active: form.active,
       flagged: !!form.flagged, flag_note: form.flag_note || null,
+      notify_email: form.notify_email !== false,
     }).eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Sparat"); qc.invalidateQueries({ queryKey: ["tenant", id] }); }
   }
@@ -162,7 +174,19 @@ function AdminTenantDetailPage() {
             <div className="space-y-1"><Label>E-post</Label><Input value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-1"><Label>Telefon</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
             <div className="space-y-1"><Label>Lägenhetsnr</Label><Input value={form.apartment_number ?? ""} onChange={(e) => setForm({ ...form, apartment_number: e.target.value })} /></div>
-            <div className="space-y-1 md:col-span-2"><Label>Adress</Label><Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+            <div className="space-y-1 md:col-span-2"><Label>Gata</Label><Input value={form.street ?? ""} onChange={(e) => setForm({ ...form, street: e.target.value })} placeholder="t.ex. Storgatan 5" /></div>
+            <div className="space-y-1"><Label>Postnummer</Label><Input value={form.postal_code ?? ""} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} placeholder="761 30" /></div>
+            <div className="space-y-1"><Label>Ort</Label><Input value={form.city ?? ""} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Norrtälje" /></div>
+            <div className="space-y-1">
+              <Label>Område</Label>
+              <Select value={form.area_id ?? "_none_"} onValueChange={(v) => setForm({ ...form, area_id: v === "_none_" ? null : v })}>
+                <SelectTrigger><SelectValue placeholder="Välj område" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">(inget område)</SelectItem>
+                  {(areas ?? []).map((a: any) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-1"><Label>Månadshyra (SEK)</Label><Input type="number" value={form.monthly_rent ?? 0} onChange={(e) => setForm({ ...form, monthly_rent: e.target.value })} /></div>
             <div className="space-y-1"><Label>Status</Label>
               <select className="w-full h-10 px-3 rounded-md border border-input bg-background" value={form.active ? "1" : "0"} onChange={(e) => setForm({ ...form, active: e.target.value === "1" })}>
@@ -171,6 +195,11 @@ function AdminTenantDetailPage() {
             </div>
           </div>
           <div className="space-y-1"><Label>Anteckningar</Label><Textarea rows={3} value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+
+          <div className="flex items-center gap-3 rounded-md border border-border p-3 bg-muted/30">
+            <Switch id="notify" checked={form.notify_email !== false} onCheckedChange={(v) => setForm({ ...form, notify_email: v })} />
+            <Label htmlFor="notify" className="text-sm">Skicka notiser via e-post (faktura, påminnelser, meddelanden)</Label>
+          </div>
 
           <div className="rounded-md border border-border p-3 space-y-2 bg-muted/30">
             <div className="flex items-center justify-between gap-3">

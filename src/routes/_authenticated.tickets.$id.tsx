@@ -27,7 +27,7 @@ function TicketDetailPage() {
   const { data: ticket } = useQuery({
     queryKey: ["ticket", id],
     queryFn: async () => {
-      const { data } = await supabase.from("maintenance_tickets").select("*, tenants(full_name)").eq("id", id).maybeSingle();
+      const { data } = await supabase.from("maintenance_tickets").select("*, tenants(full_name, areas(name))").eq("id", id).maybeSingle();
       return data;
     },
   });
@@ -52,6 +52,18 @@ function TicketDetailPage() {
     const { error } = await supabase.from("maintenance_tickets").update({ status: newStatus as any }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Status uppdaterad"); qc.invalidateQueries({ queryKey: ["ticket", id] }); }
+  }
+
+  async function updatePriority(newPriority: string) {
+    const { error } = await supabase.from("maintenance_tickets").update({ priority: newPriority as any }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Prioritet uppdaterad"); qc.invalidateQueries({ queryKey: ["ticket", id] }); }
+  }
+
+  async function saveAdminNotes(notes: string) {
+    const { error } = await supabase.from("maintenance_tickets").update({ admin_notes: notes || null }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Anteckning sparad"); qc.invalidateQueries({ queryKey: ["ticket", id] }); }
   }
 
   async function postComment(e: React.FormEvent) {
@@ -103,6 +115,7 @@ function TicketDetailPage() {
         <p className="text-sm text-muted-foreground mt-1">
           {ticketCategoryLabel[ticket.category]} · skapat {formatDate(ticket.created_at)}
           {role === "admin" && ticket.tenants?.full_name && ` · ${ticket.tenants.full_name}`}
+          {role === "admin" && ticket.tenants?.areas?.name && ` · ${ticket.tenants.areas.name}`}
         </p>
       </div>
 
@@ -110,20 +123,35 @@ function TicketDetailPage() {
         <TicketStatusBadge status={ticket.status} />
         <PriorityBadge priority={ticket.priority} />
         {role === "admin" && (
-          <Select value={ticket.status} onValueChange={updateStatus}>
-            <SelectTrigger className="w-[200px] ml-auto"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new">Nytt</SelectItem>
-              <SelectItem value="in_progress">Pågår</SelectItem>
-              <SelectItem value="awaiting_tenant">Väntar hyresgäst</SelectItem>
-              <SelectItem value="done">Klart</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Select value={ticket.priority} onValueChange={updatePriority}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Låg</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="high">Hög</SelectItem>
+                <SelectItem value="urgent">Akut</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={ticket.status} onValueChange={updateStatus}>
+              <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">Nytt</SelectItem>
+                <SelectItem value="in_progress">Pågår</SelectItem>
+                <SelectItem value="awaiting_tenant">Väntar hyresgäst</SelectItem>
+                <SelectItem value="done">Klart</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
 
       {ticket.description && (
         <Card><CardContent className="pt-6 whitespace-pre-wrap text-sm">{ticket.description}</CardContent></Card>
+      )}
+
+      {role === "admin" && (
+        <AdminNotes initial={ticket.admin_notes ?? ""} onSave={saveAdminNotes} />
       )}
 
       <Card>
@@ -173,5 +201,21 @@ function TicketDetailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function AdminNotes({ initial, onSave }: { initial: string; onSave: (n: string) => Promise<void> }) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Intern anteckning (endast admin)</CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        <Textarea rows={3} value={value} onChange={(e) => setValue(e.target.value)} placeholder="Anteckning syns inte för hyresgästen…" />
+        <Button size="sm" disabled={busy || value === initial} onClick={async () => { setBusy(true); await onSave(value); setBusy(false); }}>
+          {busy ? "Sparar…" : "Spara anteckning"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

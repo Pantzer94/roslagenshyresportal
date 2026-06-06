@@ -19,7 +19,6 @@ function NewTicketPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("maintenance");
-  const [priority, setPriority] = useState("normal");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -44,7 +43,7 @@ function NewTicketPage() {
       tenant_id: tenant!.id,
       title: title.trim(),
       category: category as any,
-      priority: priority as any,
+      priority: "normal",
       description: description.trim() || null,
     });
     setSaving(false);
@@ -63,31 +62,18 @@ function NewTicketPage() {
               <Label htmlFor="title">Titel *</Label>
               <Input id="title" required maxLength={150} value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Kategori</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="damage">Skada</SelectItem>
-                    <SelectItem value="maintenance">Underhåll</SelectItem>
-                    <SelectItem value="report">Felanmälan</SelectItem>
-                    <SelectItem value="other">Övrigt</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Prioritet</Label>
-                <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Låg</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">Hög</SelectItem>
-                    <SelectItem value="urgent">Akut</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Kategori</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="damage">Skada</SelectItem>
+                  <SelectItem value="maintenance">Underhåll</SelectItem>
+                  <SelectItem value="report">Felanmälan</SelectItem>
+                  <SelectItem value="other">Övrigt</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Hyresvärden bedömer prioritet när ärendet tas emot.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Beskrivning</Label>

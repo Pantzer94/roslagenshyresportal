@@ -26,6 +26,7 @@ import { Route as AuthenticatedTicketsIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMessagesTenantIdRouteImport } from './routes/_authenticated.messages.$tenantId'
 import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated.admin.tickets'
 import { Route as AuthenticatedAdminRentRouteImport } from './routes/_authenticated.admin.rent'
+import { Route as AuthenticatedAdminAreasRouteImport } from './routes/_authenticated.admin.areas'
 import { Route as AuthenticatedAdminTenantsIndexRouteImport } from './routes/_authenticated.admin.tenants.index'
 import { Route as AuthenticatedAdminTenantsIdRouteImport } from './routes/_authenticated.admin.tenants.$id'
 
@@ -117,6 +118,11 @@ const AuthenticatedAdminRentRoute = AuthenticatedAdminRentRouteImport.update({
   path: '/rent',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminAreasRoute = AuthenticatedAdminAreasRouteImport.update({
+  id: '/areas',
+  path: '/areas',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminTenantsIndexRoute =
   AuthenticatedAdminTenantsIndexRouteImport.update({
     id: '/tenants/',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/rent': typeof AuthenticatedAdminRentRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/rent': typeof AuthenticatedAdminRentRoute
   '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/_authenticated/admin/rent': typeof AuthenticatedAdminRentRoute
   '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/messages/$tenantId': typeof AuthenticatedMessagesTenantIdRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/payments'
     | '/profile'
+    | '/admin/areas'
     | '/admin/rent'
     | '/admin/tickets'
     | '/messages/$tenantId'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/payments'
     | '/profile'
+    | '/admin/areas'
     | '/admin/rent'
     | '/admin/tickets'
     | '/messages/$tenantId'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/payments'
     | '/_authenticated/profile'
+    | '/_authenticated/admin/areas'
     | '/_authenticated/admin/rent'
     | '/_authenticated/admin/tickets'
     | '/_authenticated/messages/$tenantId'
@@ -385,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRentRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/areas': {
+      id: '/_authenticated/admin/areas'
+      path: '/areas'
+      fullPath: '/admin/areas'
+      preLoaderRoute: typeof AuthenticatedAdminAreasRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/tenants/': {
       id: '/_authenticated/admin/tenants/'
       path: '/tenants'
@@ -403,6 +422,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAreasRoute: typeof AuthenticatedAdminAreasRoute
   AuthenticatedAdminRentRoute: typeof AuthenticatedAdminRentRoute
   AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedAdminTenantsIdRoute: typeof AuthenticatedAdminTenantsIdRoute
@@ -410,6 +430,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAreasRoute: AuthenticatedAdminAreasRoute,
   AuthenticatedAdminRentRoute: AuthenticatedAdminRentRoute,
   AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
   AuthenticatedAdminTenantsIdRoute: AuthenticatedAdminTenantsIdRoute,
@@ -459,13 +480,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
