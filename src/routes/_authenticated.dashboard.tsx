@@ -19,20 +19,40 @@ function DashboardPage() {
 }
 
 function AdminDashboard() {
+  const { user } = useAuth();
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile", user!.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("full_name").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+  const firstName = (profile?.full_name?.trim().split(/\s+/)[0]) || (user?.email?.split("@")[0]) || "";
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-dashboard"],
     queryFn: async () => {
-      const [tenants, unpaid, openTickets, recentTickets] = await Promise.all([
+      const [tenants, unpaid, openTickets, recentTickets, areaRows] = await Promise.all([
         supabase.from("tenants").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("rent_invoices").select("id, amount, due_date, status, tenants(full_name)").in("status", ["unpaid", "overdue"]).order("due_date", { ascending: true }).limit(10),
         supabase.from("maintenance_tickets").select("id", { count: "exact", head: true }).in("status", ["new", "in_progress"]),
         supabase.from("maintenance_tickets").select("id, title, status, created_at, tenants(full_name)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("tenants").select("area_id, areas(name)").eq("active", true),
       ]);
+      const byArea = new Map<string, number>();
+      (areaRows.data ?? []).forEach((r: any) => {
+        const name = r.areas?.name ?? "Utan område";
+        byArea.set(name, (byArea.get(name) ?? 0) + 1);
+      });
+      const areaCounts = Array.from(byArea.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
       return {
         tenantCount: tenants.count ?? 0,
         unpaid: unpaid.data ?? [],
         openTicketCount: openTickets.count ?? 0,
         recentTickets: recentTickets.data ?? [],
+        areaCounts,
       };
     },
   });
@@ -41,7 +61,7 @@ function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Översikt</h1>
-        <p className="text-muted-foreground mt-1">Välkommen tillbaka, hyresvärd.</p>
+        <p className="text-muted-foreground mt-1">Välkommen tillbaka{firstName ? `, ${firstName}` : ""}.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -49,6 +69,27 @@ function AdminDashboard() {
         <StatCard icon={AlertTriangle} label="Obetalda hyror" value={isLoading ? "…" : String(data?.unpaid.length ?? 0)} tone="warning" />
         <StatCard icon={Wrench} label="Öppna ärenden" value={isLoading ? "…" : String(data?.openTicketCount ?? 0)} />
       </div>
+
+      {data?.areaCounts && data.areaCounts.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Hyresgäster per område</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {data.areaCounts.map((a) => (
+                <Link
+                  key={a.name}
+                  to="/admin/tenants"
+                  search={{ area: a.name } as any}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 text-accent text-sm hover:bg-accent/20"
+                >
+                  <span className="font-medium">{a.name}</span>
+                  <span className="opacity-70">{a.count}</span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
