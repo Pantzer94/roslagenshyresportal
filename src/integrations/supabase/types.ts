@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      areas: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -60,6 +78,7 @@ export type Database = {
       }
       maintenance_tickets: {
         Row: {
+          admin_notes: string | null
           category: Database["public"]["Enums"]["ticket_category"]
           created_at: string
           description: string | null
@@ -71,6 +90,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
           category?: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
           description?: string | null
@@ -82,6 +102,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
           category?: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
           description?: string | null
@@ -172,6 +193,7 @@ export type Database = {
           amount: number
           created_at: string
           due_date: string
+          email_sent_at: string | null
           id: string
           paid_date: string | null
           payment_note: string | null
@@ -184,6 +206,7 @@ export type Database = {
           amount: number
           created_at?: string
           due_date: string
+          email_sent_at?: string | null
           id?: string
           paid_date?: string | null
           payment_note?: string | null
@@ -196,6 +219,7 @@ export type Database = {
           amount?: number
           created_at?: string
           due_date?: string
+          email_sent_at?: string | null
           id?: string
           paid_date?: string | null
           payment_note?: string | null
@@ -219,6 +243,8 @@ export type Database = {
           active: boolean
           address: string | null
           apartment_number: string | null
+          area_id: string | null
+          city: string | null
           created_at: string
           email: string | null
           flag_note: string | null
@@ -227,7 +253,10 @@ export type Database = {
           id: string
           monthly_rent: number | null
           notes: string | null
+          notify_email: boolean
           phone: string | null
+          postal_code: string | null
+          street: string | null
           updated_at: string
           user_id: string | null
         }
@@ -235,6 +264,8 @@ export type Database = {
           active?: boolean
           address?: string | null
           apartment_number?: string | null
+          area_id?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           flag_note?: string | null
@@ -243,7 +274,10 @@ export type Database = {
           id?: string
           monthly_rent?: number | null
           notes?: string | null
+          notify_email?: boolean
           phone?: string | null
+          postal_code?: string | null
+          street?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -251,6 +285,8 @@ export type Database = {
           active?: boolean
           address?: string | null
           apartment_number?: string | null
+          area_id?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           flag_note?: string | null
@@ -259,11 +295,22 @@ export type Database = {
           id?: string
           monthly_rent?: number | null
           notes?: string | null
+          notify_email?: boolean
           phone?: string | null
+          postal_code?: string | null
+          street?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_attachments: {
         Row: {
