@@ -203,3 +203,19 @@ function TicketDetailPage() {
     </div>
   );
 }
+
+function AdminNotes({ initial, onSave }: { initial: string; onSave: (n: string) => Promise<void> }) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Intern anteckning (endast admin)</CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        <Textarea rows={3} value={value} onChange={(e) => setValue(e.target.value)} placeholder="Anteckning syns inte för hyresgästen…" />
+        <Button size="sm" disabled={busy || value === initial} onClick={async () => { setBusy(true); await onSave(value); setBusy(false); }}>
+          {busy ? "Sparar…" : "Spara anteckning"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
