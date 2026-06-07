@@ -231,7 +231,7 @@ function AdminTenantDetailPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Ta bort {tenant.full_name}?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Allt kopplat till hyresgästen tas bort permanent: hyror, ärenden, meddelanden och dokument. Konto-inloggningen kvarstår men är inte längre kopplad.
+                    Allt tas bort permanent: hyror, ärenden, meddelanden, dokument OCH inloggningen. E-postadressen kan därefter användas för att registrera en helt ny hyresgäst från start.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
