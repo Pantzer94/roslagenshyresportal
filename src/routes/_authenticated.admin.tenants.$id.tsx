@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { ArrowLeft, AlertTriangle, Trash2, Upload, Download, FileText } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
-import { adminUpdateTenantLoginEmail } from "@/lib/admin.functions";
+import { adminUpdateTenantLoginEmail, adminDeleteTenant } from "@/lib/admin.functions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/admin/tenants/$id")({
@@ -32,6 +32,7 @@ function AdminTenantDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const changeLoginEmail = useServerFn(adminUpdateTenantLoginEmail);
+  const removeTenant = useServerFn(adminDeleteTenant);
 
   const { data: tenant } = useQuery({
     queryKey: ["tenant", id],
@@ -109,10 +110,13 @@ function AdminTenantDetailPage() {
   }
 
   async function deleteTenant() {
-    const { error } = await supabase.from("tenants").delete().eq("id", id);
-    if (error) { toast.error("Kunde inte ta bort", { description: error.message }); return; }
-    toast.success("Hyresgäst borttagen");
-    navigate({ to: "/admin/tenants" });
+    try {
+      await removeTenant({ data: { tenant_id: id } });
+      toast.success("Hyresgäst och inloggning borttagen");
+      navigate({ to: "/admin/tenants" });
+    } catch (e: any) {
+      toast.error("Kunde inte ta bort", { description: e?.message ?? String(e) });
+    }
   }
 
   async function uploadDocument(file: File, description: string) {
@@ -227,7 +231,7 @@ function AdminTenantDetailPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Ta bort {tenant.full_name}?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Allt kopplat till hyresgästen tas bort permanent: hyror, ärenden, meddelanden och dokument. Konto-inloggningen kvarstår men är inte längre kopplad.
+                    Allt tas bort permanent: hyror, ärenden, meddelanden, dokument OCH inloggningen. E-postadressen kan därefter användas för att registrera en helt ny hyresgäst från start.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
